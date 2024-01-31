@@ -2,10 +2,10 @@
 Contributors: automattic, google, woocommerce
 Tags: woocommerce, google, listings, ads
 Requires at least: 5.9
-Tested up to: 6.3
+Tested up to: 6.4
 Requires PHP: 7.4
 Requires PHP Architecture: 64 Bits
-Stable tag: 2.5.7
+Stable tag: 2.5.16
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -60,7 +60,7 @@ Create a new Google Ads account through Google Listings & Ads and a promotional 
 * PHP Architecture 64 bits
 * MySQL version 5.6 or greater
 
-Visit the [WooCommerce server requirements documentation](https://docs.woocommerce.com/document/server-requirements/) for a detailed list of server requirements.
+Visit the [WooCommerce server requirements documentation](https://woo.com/document/server-requirements/) for a detailed list of server requirements.
 
 = Automatic installation =
 
@@ -111,25 +111,25 @@ Yes, you can run both at the same time, and we recommend it! In the US, advertis
 
 == Changelog ==
 
-= 2.5.7 - 2023-09-20 =
-* Dev - E2E - Ads a paid campaign Step 1 - Connect Ads Account.
-* Dev - E2E - Onboarding Step 2 - Configure product listings.
-* Dev - E2E - Onboarding Step 3 - Confirm store requirements.
-* Fix - Performance issue with GoogleAdsFailures::init.
+= 2.5.16 - 2024-01-30 =
+* Add - Include connected accounts in tracks from the backend.
+* Add - Include plugin version, Google Merchant Center account ID, and Google Ads account ID in all frontend tracking events.
+* Add - Send the related tracking event with the account ID to be connected when connecting to an existing Google Merchant Center or Google Ads account.
+* Add - Tracking for completed events.
+* Dev - Generate coverage report with xdebug.
+* Fix - Context not tracked in Create Campaign FAQs.
+* Fix - WordPress 6.4 Compatibility: Set an appropriate width for the content in the Popover component.
 
-= 2.5.6 - 2023-09-14 =
-* Dev - E2E - Onboarding Step 1 - Set up accounts - Connect Merchant Center account.
-* FIx - Undesired margin in Paid Campaign Creation Success Modal.
-* Fix - Adjust target on click events preventing GLA ID to be Undefined.
-* Fix - Tweak E2E tests for WC 8.1.
-* Fix - WooCommerce Subscriptions compatibility: Fix the visible issue of the "Google Listings and Ads" tab and "Channel visibility" meta box for some unsupported product types.
-* Tweak - WC 8.1.0 compatibility.
+= 2.5.15 - 2024-01-09 =
+* Dev - Update link for developer.woo.com.
+* Tweak - WC 8.5 compatibility.
+* Update - Upgrade google/apiclient for PHP 8.3 compatibility.
 
-= 2.5.5 - 2023-09-05 =
-* Dev - Add E2E tests - Dashboard - Edit Free Listings.
-* Dev - Clean up workarounds for WooCommerce < 6.8.
-* Dev - Externalize all WooCommerce JavaScript packages via Dependency Extraction Webpack Plugin (DEWP) and remove the selective bundling implementation that gradually externalizes packages into DEWP.
-* Dev - Update DEWP related tools and docs.
-* Fix - Fix Taxonomy Attribute Mapping for Product Variations.
+= 2.5.14 - 2023-12-18 =
+* Dev - Include PHP 8.3 in tested versions for PHPunit.
+* Fix - Item price in purchase event.
+* Tweak - Track Budgets and Audience in Onboarding.
+* Tweak - WC 8.4 compatibility.
+* Update - Change to require Google Ads connection during the onboarding.
 
 [See changelog for all versions](https://raw.githubusercontent.com/woocommerce/google-listings-and-ads/trunk/changelog.txt).

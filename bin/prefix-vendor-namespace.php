@@ -295,9 +295,11 @@ function prefix_uses( &$contents, $package ) {
 function prefix_string( &$contents, $search ) {
 	global $namespace_prefix;
 
-	$quoted   = preg_quote( $search, '#' );
+	$quoted           = preg_quote( $search, '#' );
+	$namespace_quoted = preg_quote( $namespace_prefix . '\\', '#' );
+
 	$contents = preg_replace(
-		"#({$quoted})#m",
+		"#((?<!{$namespace_quoted}){$quoted})#m", // prevent to add the namespace twice
 		"{$namespace_prefix}\\\\\$1",
 		$contents
 	);
@@ -308,11 +310,11 @@ function prefix_string( &$contents, $search ) {
  *
  * @since 2.2.2
  *
- * @param string $path Package path
- * @param string $match Regex pattern to match
+ * @param string $path    Package path
+ * @param string $pattern Regex pattern to match
  * @return array Matching files
  */
-function get_dir_contents( $path, $match ) {
+function get_dir_contents( $path, $pattern ) {
 	try {
 		$rdi = new RecursiveDirectoryIterator( $path );
 	} catch ( UnexpectedValueException  $e ) {
@@ -324,7 +326,7 @@ function get_dir_contents( $path, $match ) {
 	}
 
 	$rii   = new RecursiveIteratorIterator( $rdi );
-	$rri   = new RegexIterator( $rii, $match );
+	$rri   = new RegexIterator( $rii, $pattern );
 	$files = [];
 	foreach ( $rri as $file ) {
 		$files[] = $file->getPathname();

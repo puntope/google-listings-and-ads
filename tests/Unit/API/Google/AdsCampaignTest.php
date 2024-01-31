@@ -11,6 +11,7 @@ use Automattic\WooCommerce\GoogleListingsAndAds\API\Google\CampaignType;
 use Automattic\WooCommerce\GoogleListingsAndAds\Google\GoogleHelper;
 use Automattic\WooCommerce\GoogleListingsAndAds\Exception\ExceptionWithResponseData;
 use Automattic\WooCommerce\GoogleListingsAndAds\Options\OptionsInterface;
+use Automattic\WooCommerce\GoogleListingsAndAds\Options\TransientsInterface;
 use Automattic\WooCommerce\GoogleListingsAndAds\Proxies\WC;
 use Automattic\WooCommerce\GoogleListingsAndAds\Tests\Framework\UnitTest;
 use Automattic\WooCommerce\GoogleListingsAndAds\Tests\Tools\HelperTrait\GoogleAdsClientTrait;
@@ -42,6 +43,9 @@ class AdsCampaignTest extends UnitTest {
 	/** @var MockObject|OptionsInterface $options */
 	protected $options;
 
+	/** @var MockObject|TransientsInterface $transients */
+	protected $transients;
+
 	/** @var AdsCampaign $campaign */
 	protected $campaign;
 
@@ -69,12 +73,14 @@ class AdsCampaignTest extends UnitTest {
 		$this->budget      = $this->createMock( AdsCampaignBudget::class );
 		$this->criterion   = new AdsCampaignCriterion();
 		$this->options     = $this->createMock( OptionsInterface::class );
+		$this->transients  = $this->createMock( TransientsInterface::class );
 
 		$this->wc            = $this->createMock( WC::class );
 		$this->google_helper = new GoogleHelper( $this->wc );
 
 		$this->container = new Container();
 		$this->container->share( AdsAssetGroup::class, $this->asset_group );
+		$this->container->share( TransientsInterface::class, $this->transients );
 		$this->container->share( WC::class, $this->wc );
 
 		$this->campaign = new AdsCampaign( $this->client, $this->budget, $this->criterion, $this->google_helper );
@@ -291,6 +297,8 @@ class AdsCampaignTest extends UnitTest {
 			'country' => self::BASE_COUNTRY,
 		] + $campaign_data;
 
+		$this->transients->expects( $this->once() )->method( 'delete' )->with( TransientsInterface::ADS_CAMPAIGN_COUNT );
+
 		$this->assertEquals(
 			$expected,
 			$this->campaign->create_campaign( $campaign_data )
@@ -439,6 +447,8 @@ class AdsCampaignTest extends UnitTest {
 
 	public function test_delete_campaign() {
 		$this->generate_campaign_mutate_mock( 'remove', self::TEST_CAMPAIGN_ID );
+
+		$this->transients->expects( $this->once() )->method( 'delete' )->with( TransientsInterface::ADS_CAMPAIGN_COUNT );
 
 		$this->assertEquals(
 			self::TEST_CAMPAIGN_ID,
@@ -618,5 +628,4 @@ class AdsCampaignTest extends UnitTest {
 		$this->generate_ads_campaign_query_mock( $campaigns_data, [] );
 		$this->assertEquals( 'unconverted', $this->campaign->get_campaign_convert_status() );
 	}
-
 }

@@ -219,7 +219,7 @@ test.describe( 'Confirm store requirements', () => {
 			await expect( link ).toBeVisible();
 			await expect( link ).toHaveAttribute(
 				'href',
-				'https://docs.woocommerce.com/document/google-listings-and-ads/#contact-information'
+				'https://woo.com/document/google-listings-and-ads/#contact-information'
 			);
 		} );
 
@@ -229,7 +229,7 @@ test.describe( 'Confirm store requirements', () => {
 			await expect( link ).toBeVisible();
 			await expect( link ).toHaveAttribute(
 				'href',
-				'https://woocommerce.com/document/google-listings-and-ads/compliance-policy'
+				'https://woo.com/document/google-listings-and-ads/compliance-policy'
 			);
 		} );
 
@@ -284,25 +284,25 @@ test.describe( 'Confirm store requirements', () => {
 				} );
 
 				test( 'should see all checkboxes are not checked', async () => {
-					const prelaunchChecklistCheckboxes =
+					const checkboxes =
 						storeRequirements.getPrelaunchChecklistCheckboxes();
 
-					for ( const checkbox of await prelaunchChecklistCheckboxes.all() ) {
+					await expect( checkboxes ).toHaveCount( 5 );
+
+					for ( const checkbox of await checkboxes.all() ) {
 						await expect( checkbox ).not.toBeChecked();
 					}
 				} );
 
 				test( 'should toggle all checklists and see the "Confirm" button in each checklist', async () => {
-					const prelaunchChecklistToggles =
-						storeRequirements.getPrelaunchChecklistToggles();
-					const count = await prelaunchChecklistToggles.count();
+					const panels =
+						storeRequirements.getPrelaunchChecklistPanels();
 
-					for ( let i = 0; i < count; i++ ) {
-						const toggle = await prelaunchChecklistToggles.nth( i );
-						await toggle.click();
-						const panel = await storeRequirements
-							.getPrelaunchChecklistPanels()
-							.nth( i );
+					await expect( panels ).toHaveCount( 5 );
+
+					for ( const panel of await panels.all() ) {
+						await panel.click();
+
 						const confirmButton = panel.getByRole( 'button', {
 							name: 'Confirm',
 							exact: true,
@@ -321,7 +321,7 @@ test.describe( 'Confirm store requirements', () => {
 					await expect( link1 ).toBeVisible();
 					await expect( link1 ).toHaveAttribute(
 						'href',
-						'https://woocommerce.com/document/google-listings-and-ads/compliance-policy/#store-is-live'
+						'https://woo.com/document/google-listings-and-ads/compliance-policy/#store-is-live'
 					);
 
 					const panel2 = await panels.nth( 1 );
@@ -329,7 +329,7 @@ test.describe( 'Confirm store requirements', () => {
 					await expect( link2 ).toBeVisible();
 					await expect( link2 ).toHaveAttribute(
 						'href',
-						'https://woocommerce.com/document/google-listings-and-ads/compliance-policy/#complete-checkout'
+						'https://woo.com/document/google-listings-and-ads/compliance-policy/#complete-checkout'
 					);
 
 					const panel3 = await panels.nth( 2 );
@@ -337,7 +337,7 @@ test.describe( 'Confirm store requirements', () => {
 					await expect( link3 ).toBeVisible();
 					await expect( link3 ).toHaveAttribute(
 						'href',
-						'https://woocommerce.com/document/google-listings-and-ads/compliance-policy/#complete-checkout'
+						'https://woo.com/document/google-listings-and-ads/compliance-policy/#complete-checkout'
 					);
 
 					const panel4 = await panels.nth( 3 );
@@ -345,7 +345,7 @@ test.describe( 'Confirm store requirements', () => {
 					await expect( link4 ).toBeVisible();
 					await expect( link4 ).toHaveAttribute(
 						'href',
-						'https://woocommerce.com/document/google-listings-and-ads/compliance-policy/#refund-and-terms'
+						'https://woo.com/document/google-listings-and-ads/compliance-policy/#refund-and-terms'
 					);
 				} );
 
@@ -494,9 +494,12 @@ test.describe( 'Confirm store requirements', () => {
 				} );
 
 				test( 'should see all checkboxes are checked', async () => {
-					const prelaunchChecklistCheckboxes =
+					const checkboxes =
 						storeRequirements.getPrelaunchChecklistCheckboxes();
-					for ( const checkbox of await prelaunchChecklistCheckboxes.all() ) {
+
+					await expect( checkboxes ).toHaveCount( 5 );
+
+					for ( const checkbox of await checkboxes.all() ) {
 						await expect( checkbox ).toBeChecked();
 						await expect( checkbox ).toBeDisabled();
 					}

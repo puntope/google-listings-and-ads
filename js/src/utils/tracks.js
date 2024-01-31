@@ -1,7 +1,14 @@
 /**
  * External dependencies
  */
-import { recordEvent } from '@woocommerce/tracks';
+import { recordEvent, queueRecordEvent } from '@woocommerce/tracks';
+import { select } from '@wordpress/data';
+
+/**
+ * Internal dependencies
+ */
+import { glaData } from '.~/constants';
+import { STORE_KEY } from '.~/data';
 
 /**
  * @typedef { import(".~/data/actions").CountryCode } CountryCode
@@ -22,6 +29,57 @@ import { recordEvent } from '@woocommerce/tracks';
  * @property {string} context Name of the table
  * @property {string} direction Direction of page to be changed. `("next" | "previous")`
  */
+
+/**
+ * Returns an event properties with base properties.
+ * - gla_version: Plugin version
+ * - gla_mc_id: Google Merchant Center account ID if connected
+ * - gla_ads_id: Google Ads account ID if connected
+ *
+ * @param {Object} [eventProperties] The event properties to be included base properties.
+ * @return {Object} Event properties with base event properties.
+ */
+export function addBaseEventProperties( eventProperties ) {
+	const { slug } = glaData;
+	const { version, adsId, mcId } = select( STORE_KEY ).getGeneral();
+
+	const mixedProperties = {
+		...eventProperties,
+		[ `${ slug }_version` ]: version,
+	};
+
+	if ( mcId ) {
+		mixedProperties[ `${ slug }_mc_id` ] = mcId;
+	}
+
+	if ( adsId ) {
+		mixedProperties[ `${ slug }_ads_id` ] = adsId;
+	}
+
+	return mixedProperties;
+}
+
+/**
+ * Record a tracking event with base properties.
+ *
+ * @param {string} eventName The name of the event to record.
+ * @param {Object} [eventProperties] The event properties to include in the event.
+ */
+export function recordGlaEvent( eventName, eventProperties ) {
+	recordEvent( eventName, addBaseEventProperties( eventProperties ) );
+}
+
+/**
+ * Queue a tracking event with base properties.
+ *
+ * This allows you to delay tracking events that would otherwise cause a race condition.
+ *
+ * @param {string} eventName The name of the event to record.
+ * @param {Object} [eventProperties] The event properties to include in the event.
+ */
+export function queueRecordGlaEvent( eventName, eventProperties ) {
+	queueRecordEvent( eventName, addBaseEventProperties( eventProperties ) );
+}
 
 /**
  * Records table's page tracking event.
@@ -46,7 +104,7 @@ export const recordTablePageEvent = ( context, page, direction ) => {
 		eventName = 'gla_table_page_click';
 		properties.direction = direction;
 	}
-	recordEvent( eventName, properties );
+	recordGlaEvent( eventName, properties );
 };
 
 /**
@@ -76,9 +134,11 @@ export const recordTablePageEvent = ( context, page, direction ) => {
  * Setup Merchant Center
  *
  * @event gla_setup_mc
- * @property {string} target Button ID
- * @property {string} trigger Action (e.g. `click`)
- * @property {string} context Indicates which CTA is clicked
+ * @property {string} triggered_by Indicates which button triggered this event
+ * @property {string} action User's action or/and objective (e.g. `leave`, `go-to-step-2`)
+ * @property {string | undefined} context Indicates which CTA is clicked
+ * @property {string | undefined} target (**Deprecated: this property should not be used after Q1 2024**) Button ID
+ * @property {string | undefined} trigger (**Deprecated: this property should not be used after Q1 2024**) Action (e.g. `click`)
  */
 
 /**
@@ -106,6 +166,56 @@ export const recordTablePageEvent = ( context, page, direction ) => {
  * @property {string} context Indicates which page / module the link is in
  * @property {string} href Link's URL
  */
+
+/**
+ * Triggered on events during ads onboarding
+ *
+ * @event gla_setup_ads
+ * @property {string} triggered_by Indicates which button triggered this event
+ * @property {string} action User's action or/and objective (e.g. `leave`, `go-to-step-2`)
+ * @property {string | undefined} target (**Deprecated: this property should not be used after Q1 2024**) Button ID
+ * @property {string | undefined} trigger (**Deprecated: this property should not be used after Q1 2024**) Action (e.g. `click`)
+ */
+
+/**
+ * Triggered when moving to another step during creating/editing a campaign.
+ *
+ * @event gla_paid_campaign_step
+ * @property {string} triggered_by Indicates which button triggered this event
+ * @property {string} action User's action or/and objective (e.g. `go-to-step-2`)
+ * @property {string | undefined} context Indicates where this event happened
+ */
+
+/**
+ * Records the event tracking when calling back the "onClick" of <Stepper> to move to another step.
+ *
+ * @param {string} eventName The event name to record.
+ * @param {string} to The next step to go to, e.g. '2'.
+ * @param {string} [context] Indicates where this event happened.
+ */
+export function recordStepperChangeEvent( eventName, to, context ) {
+	recordGlaEvent( eventName, {
+		triggered_by: `stepper-step${ to }-button`,
+		action: `go-to-step${ to }`,
+		context,
+	} );
+}
+
+/**
+ * Records the event tracking when clicking on the "Continue" button within a step content to move to another step.
+ *
+ * @param {string} eventName The event name to record.
+ * @param {string} from The current step to leave from, e.g. '1'.
+ * @param {string} to The next step to go to, e.g. '2'.
+ * @param {string} [context] Indicates where this event happened.
+ */
+export function recordStepContinueEvent( eventName, from, to, context ) {
+	recordGlaEvent( eventName, {
+		triggered_by: `step${ from }-continue-button`,
+		action: `go-to-step${ to }`,
+		context,
+	} );
+}
 
 /**
  * A modal is closed.

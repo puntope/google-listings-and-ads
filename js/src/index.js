@@ -2,6 +2,7 @@
  * External dependencies
  */
 import { __ } from '@wordpress/i18n';
+import { lazy } from '@wordpress/element';
 import { addFilter } from '@wordpress/hooks';
 import { getSetting } from '@woocommerce/settings'; // eslint-disable-line import/no-unresolved
 // The above is an unpublished package, delivered with WC, we use Dependency Extraction Webpack Plugin to import it.
@@ -12,16 +13,43 @@ import { getSetting } from '@woocommerce/settings'; // eslint-disable-line impor
  */
 import './css/index.scss';
 import withAdminPageShell from '.~/components/withAdminPageShell';
-import GetStartedPage from './get-started-page';
-import SetupMC from './setup-mc';
-import SetupAds from './setup-ads';
-import Dashboard from './dashboard';
-import Reports from './pages/reports';
-import ProductFeed from './product-feed';
-import Settings from './settings';
-import AttributeMapping from '.~/attribute-mapping';
 import './data';
 import isWCNavigationEnabled from './utils/isWCNavigationEnabled';
+import { addBaseEventProperties } from '.~/utils/tracks';
+
+const Dashboard = lazy( () =>
+	import( /* webpackChunkName: "dashboard" */ './dashboard' )
+);
+
+const GetStartedPage = lazy( () =>
+	import( /* webpackChunkName: "get-started-page" */ './get-started-page' )
+);
+
+const SetupMC = lazy( () =>
+	import( /* webpackChunkName: "setup-mc" */ './setup-mc' )
+);
+
+const SetupAds = lazy( () =>
+	import( /* webpackChunkName: "setup-ads" */ './setup-ads' )
+);
+
+const Reports = lazy( () =>
+	import( /* webpackChunkName: "reports" */ './pages/reports' )
+);
+
+const ProductFeed = lazy( () =>
+	import( /* webpackChunkName: "product-feed" */ './product-feed' )
+);
+
+const AttributeMapping = lazy( () =>
+	import( /* webpackChunkName: "attribute-mapping" */ './attribute-mapping' )
+);
+
+const Settings = lazy( () =>
+	import( /* webpackChunkName: "settings" */ './settings' )
+);
+
+export const pagePaths = new Set();
 
 const woocommerceTranslation =
 	getSetting( 'admin' )?.woocommerceTranslation ||
@@ -29,7 +57,7 @@ const woocommerceTranslation =
 
 addFilter(
 	'woocommerce_admin_pages_list',
-	'woocommerce-marketing',
+	'woocommerce/google-listings-and-ads/add-page-routes',
 	( pages ) => {
 		const navigationEnabled = isWCNavigationEnabled();
 		const initialBreadcrumbs = [ [ '', woocommerceTranslation ] ];
@@ -140,8 +168,28 @@ addFilter(
 
 		pluginAdminPages.forEach( ( page ) => {
 			page.container = withAdminPageShell( page.container );
+
+			// Do the same thing as https://github.com/woocommerce/woocommerce/blob/6.9.0/plugins/woocommerce-admin/client/layout/index.js#L178
+			const path = page.path.substring( 1 ).replace( /\//g, '_' );
+			pagePaths.add( path );
 		} );
 
 		return pages.concat( pluginAdminPages );
+	}
+);
+
+// Ref: https://github.com/woocommerce/woocommerce/blob/6.9.0/plugins/woocommerce/includes/tracks/class-wc-site-tracking.php#L92
+addFilter(
+	'woocommerce_tracks_client_event_properties',
+	'woocommerce/google-listings-and-ads/add-base-event-properties-to-page-view',
+	( eventProperties, eventName ) => {
+		if (
+			eventName === 'wcadmin_page_view' &&
+			pagePaths.has( eventProperties.path )
+		) {
+			return addBaseEventProperties( eventProperties );
+		}
+
+		return eventProperties;
 	}
 );

@@ -134,7 +134,7 @@ test.describe( 'GTag events', () => {
 		await page.goto( 'shop?orderby=date' );
 		const addToCart = `[data-product_id="${ simpleProductID }"]`;
 		const addToCartButton = await page.locator( addToCart ).first();
-		addToCartButton.click();
+		await addToCartButton.click();
 		await expect( addToCartButton.getByText( '1 in cart' ) ).toBeVisible();
 
 		await event.then( ( request ) => {
@@ -151,7 +151,7 @@ test.describe( 'GTag events', () => {
 	} ) => {
 		await singleProductAddToCart( page, simpleProductID );
 
-		const event = trackGtagEvent( page, 'page_view' );
+		const event = trackGtagEvent( page, 'page_view', 'cart' );
 		await page.goto( 'cart' );
 
 		await event.then( ( request ) => {
@@ -166,7 +166,7 @@ test.describe( 'GTag events', () => {
 	} ) => {
 		await singleProductAddToCart( page, simpleProductID );
 
-		const event = trackGtagEvent( page, 'conversion' );
+		const event = trackGtagEvent( page, 'conversion', 'checkout' );
 		await checkout( page );
 
 		await event.then( ( request ) => {
@@ -181,7 +181,7 @@ test.describe( 'GTag events', () => {
 	} ) => {
 		await singleProductAddToCart( page, simpleProductID );
 
-		const event = trackGtagEvent( page, 'purchase' );
+		const event = trackGtagEvent( page, 'purchase', 'checkout' );
 		await checkout( page );
 
 		await event.then( ( request ) => {

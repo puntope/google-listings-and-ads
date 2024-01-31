@@ -46,7 +46,7 @@ export async function relatedProductAddToCart( page ) {
 		: '.wp-block-woocommerce-related-products .add_to_cart_button';
 
 	const addToCartButton = await page.locator( addToCart ).first();
-	addToCartButton.click();
+	await addToCartButton.click();
 	await expect( addToCartButton.getByText( '1 in cart' ) ).toBeVisible();
 	return await page.$eval( addToCart, ( el ) => el.dataset.product_id );
 }
@@ -100,9 +100,12 @@ export async function checkout( page ) {
 		await page.locator( '#billing-state input' ).fill( user.statename );
 	}
 
+	//TODO: See if there's an alternative method to click the button without relying on waitForTimeout.
+	await page.waitForTimeout( 3000 );
+
 	await page.locator( 'text=Place order' ).click();
 
 	await expect(
-		page.locator( '.woocommerce-thankyou-order-received' )
+		page.locator( '.wc-block-order-confirmation-status' )
 	).toContainText( 'order has been received' );
 }
